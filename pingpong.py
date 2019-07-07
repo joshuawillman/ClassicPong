@@ -1,10 +1,4 @@
-# add acceleration to ball over time
-# Add sound when ball hits player
-# Add sound if score
-# Respawn ball if goes pass player with delay
 # Add music
-# Add game menu
-# Add end game screen that says which player won
 # BUG = Collision when ball hits top of player
 
 # import necessary packages
@@ -16,7 +10,7 @@ WINDOWHEIGHT = 740 # includes space for scoreboard
 FPS = 30
 
 TITLE = "PONG"
-PLAYERSPEED = 15
+PLAYERSPEED = 16
 
 # colors 
 BLACK = (0,0,0)
@@ -28,6 +22,7 @@ GREY = (94,92,94)
 
 # initialize pygame and create window
 pg.init()
+pg.mixer.init() # initialize sound
 DISPLAYSURF = pg.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
 pg.display.set_caption(TITLE)
 
@@ -103,7 +98,7 @@ class PinkPlayer(pg.sprite.Sprite):
 
 class Ball(pg.sprite.Sprite):
     ''' create ball '''
-    def __init__(self):
+    def __init__(self, bounce):
         super().__init__()
 
         # create image of ball
@@ -114,7 +109,7 @@ class Ball(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         # spawn location
         self.rect.centerx = WINDOWWIDTH / 2
-        self.rect.centery = WINDOWHEIGHT / 2 
+        self.rect.centery = WINDOWHEIGHT / 2 + 20
         
         # set the direction of the ball to a random direction
         direction = random.choice(["leftdown", "rightdown", 
@@ -123,12 +118,16 @@ class Ball(pg.sprite.Sprite):
     
         # speed variables
         self.changex = random.randint(6, 9)
-        self.changey = random.randint(3, 5)
+        self.changey = random.randint(3, 6)
 
         # Keep track of score
         self.blue_score = 0
         self.pink_score = 0
-        self.goal = False
+
+        self.respawn_time = 0
+
+        # bounce noise
+        self.bounce = bounce
     
     def update(self):
         '''update ball movement'''
@@ -147,26 +146,71 @@ class Ball(pg.sprite.Sprite):
 
         # boundary checking
         if self.rect.top <= 40 or self.rect.bottom >= WINDOWHEIGHT:
+            self.bounce.play()
             self.changey *= -1
+        
         # scoring and boundary checking
         if self.rect.left > WINDOWWIDTH + 100:
             self.blue_score += 1
-            self.goal = True
-            self.kill()
+            #self.kill()
+            self.respawn()
         if self.rect.right < 0 - 100:
             self.pink_score += 1
-            self.goal = True
-            self.kill()
+            #self.kill()
+            self.respawn()
 
-class OutOfBounds(pg.sprite.Sprite):
-    pass
-
+    def respawn(self):
+        '''respawn ball back to center and reset the 
+           direction and speed'''
+        current_time = pg.time.get_ticks()
+        if current_time - self.respawn_time > 1000:
+            self.respawn_time = current_time
+            self.rect.centerx = WINDOWWIDTH / 2
+            self.rect.centery = WINDOWHEIGHT / 2 + 20
+            # set the direction of the ball to a random direction
+            direction = random.choice(["leftdown", "rightdown", 
+                                       "leftup", "rightup"])
+            self.direct = direction
+            # speed variables
+            self.changex = random.randint(7, 10)
+            self.changey = random.randint(3, 6)
+        
 def show_start_screen():
     # game start screen
     DISPLAYSURF.fill(WHITEGREY)
-    draw_text(DISPLAYSURF, TITLE, 100, WINDOWWIDTH / 2, WINDOWHEIGHT / 4, GREY)
+    draw_text(DISPLAYSURF, "PO", 200, (WINDOWWIDTH / 2) - 100, WINDOWHEIGHT / 4, PINK)
+    draw_text(DISPLAYSURF, "NG", 200, (WINDOWWIDTH / 2) + 100, WINDOWHEIGHT / 4, BLUE)
+
+    # draw instructions and gameplay on board
+    pg.draw.rect(DISPLAYSURF, BLUE, (100, 350, 20, 100))
+    pg.draw.rect(DISPLAYSURF, PINK, (880, 350, 20, 100))
+
+    draw_text(DISPLAYSURF, "W", 50, 110, WINDOWHEIGHT / 2 + 100, GREY)
+    draw_text(DISPLAYSURF, "S", 50, 110, WINDOWHEIGHT / 2 + 150, GREY)
+    draw_text(DISPLAYSURF, "UP", 50, WINDOWWIDTH - 110, WINDOWHEIGHT / 2 + 100, GREY)
+    draw_text(DISPLAYSURF, "DOWN", 50, WINDOWWIDTH - 110, WINDOWHEIGHT / 2 + 150, GREY)
+    draw_text(DISPLAYSURF, "First to 10", 50, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 - 75, GREY)
+    draw_text(DISPLAYSURF, "Press RETURN to play", 50, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4, GREY)    
     pg.display.update()
     wait_for_key() 
+
+def show_gameover_screen_pink():
+    # gameover screen/continue
+    DISPLAYSURF.fill(WHITEGREY)
+    draw_text(DISPLAYSURF, "PINK WINS!", 200, (WINDOWWIDTH / 2), WINDOWHEIGHT / 4, PINK)
+    draw_text(DISPLAYSURF, "A Joshua Willman Game", 40, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 - 75, GREY)
+    draw_text(DISPLAYSURF, "Thank you for playing!", 50, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4, GREY) 
+    pg.display.update()
+    wait_for_key()
+
+def show_gameover_screen_blue():
+    # gameover screen/continue
+    DISPLAYSURF.fill(WHITEGREY)
+    draw_text(DISPLAYSURF, "BLUE WINS!", 200, (WINDOWWIDTH / 2), WINDOWHEIGHT / 4, BLUE)
+    draw_text(DISPLAYSURF, "A Joshua Willman Game", 40, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 - 75, GREY)
+    draw_text(DISPLAYSURF, "Thank you for playing!", 50, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4, GREY) 
+    pg.display.update()
+    wait_for_key()
 
 def wait_for_key():
     # pause for key event
@@ -179,7 +223,9 @@ def wait_for_key():
                 pg.quit()
                 sys.exit()
             if event.type == pg.KEYDOWN:
-                waiting = False
+                if event.key == pg.K_RETURN:
+                    pong_sound.play()
+                    waiting = False
 
 def draw_text(surface, text, size, x, y, color):
     '''draw text to screen'''
@@ -193,9 +239,25 @@ def draw_text(surface, text, size, x, y, color):
 logo = pg.image.load('logo.png').convert_alpha()
 logo_rect = logo.get_rect(center=(WINDOWWIDTH/2, WINDOWHEIGHT/2 + 20))
 
+# load sounds
+pong_sound = pg.mixer.Sound('beeep.ogg')
+bounce_sound = pg.mixer.Sound('plop.ogg')
+
 running = True
 show_menu = True
+show_gameover_menu_pink = False
+show_gameover_menu_blue = False
 while running: # main game loop
+    if show_gameover_menu_pink:
+        show_gameover_screen_pink()
+        show_gameover_menu_pink = False
+        show_menu = True
+
+    if show_gameover_menu_blue:
+        show_gameover_screen_blue()
+        show_gameover_menu_blue = False
+        show_menu = True
+    
     if show_menu:
         show_start_screen()
         pg.time.delay(1500)
@@ -216,11 +278,11 @@ while running: # main game loop
         pink.rect.x = WINDOWWIDTH - 45
         pink.rect.y = (WINDOWHEIGHT / 2 - pink.rect.centery) + 20
 
-        ball = Ball()
+        # Create ball
+        ball = Ball(bounce_sound)
 
         # Add sprites to the list of objects
         active_sprites_list.add(blue, pink, ball)
-        balls.add(ball)
 
     for event in pg.event.get():
         if event.type == QUIT:
@@ -249,22 +311,28 @@ while running: # main game loop
 
     # Game logic goes here
     active_sprites_list.update()
-    balls.update()
 
     # Collision detection
     # check for collision between blue player and ball
     blue_hit = pg.sprite.collide_rect(ball, blue)
     if blue_hit:
-        ball.changex *= -1
+        pong_sound.play()
+        ball.changex *= -1.07
 
     # check for collision between blue player and ball
     pink_hit = pg.sprite.collide_rect(ball, pink)
     if pink_hit:
-        ball.changex *= -1
+        pong_sound.play()
+        ball.changex *= -1.07
 
     # return to menu
-    if ball.pink_score == 10 or ball.blue_score == 10:
-        show_menu = True
+    if ball.pink_score == 2 or ball.blue_score == 2:
+        if ball.pink_score == 2:
+            show_gameover_menu_pink = True
+        elif ball.blue_score == 2:
+            show_gameover_menu_blue = True
+            #show_gameover_screen()
+            #show_menu = True
 
     # Drawing code goes here
     DISPLAYSURF.fill(WHITEGREY)
@@ -279,10 +347,12 @@ while running: # main game loop
     pg.draw.rect(DISPLAYSURF, GREY, (0,0,WINDOWWIDTH,40))
 
     # Display scores
-    draw_text(DISPLAYSURF, "SCORE: ", 35, WINDOWWIDTH / 4, 10, BLUE)
-    draw_text(DISPLAYSURF, str(ball.blue_score), 35, WINDOWWIDTH / 4 + 60, 10, BLUE)
-    draw_text(DISPLAYSURF, "SCORE: ", 35, (WINDOWWIDTH / 4 + WINDOWWIDTH / 2), 10, PINK)
-    draw_text(DISPLAYSURF, str(ball.pink_score), 35, (WINDOWWIDTH / 4 + WINDOWWIDTH / 2) + 60, 10, PINK)
+    #draw_text(DISPLAYSURF, "SCORE: ", 35, WINDOWWIDTH / 4, 10, BLUE)
+    #draw_text(DISPLAYSURF, str(ball.blue_score), 45, WINDOWWIDTH / 4 + 60, 5, BLUE)
+    draw_text(DISPLAYSURF, str(ball.blue_score), 50, WINDOWWIDTH / 4, 4, BLUE)
+    #draw_text(DISPLAYSURF, "SCORE: ", 35, (WINDOWWIDTH / 4 + WINDOWWIDTH / 2), 10, PINK)
+    #draw_text(DISPLAYSURF, str(ball.pink_score), 45, (WINDOWWIDTH / 4 + WINDOWWIDTH / 2) + 60, 5, PINK)
+    draw_text(DISPLAYSURF, str(ball.pink_score), 50, (WINDOWWIDTH / 4 + WINDOWWIDTH / 2), 4, PINK)
 
     # Draw sprites at once all/refresh the position of the player
     active_sprites_list.draw(DISPLAYSURF)
