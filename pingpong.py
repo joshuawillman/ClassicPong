@@ -1,4 +1,3 @@
-# Add music
 # BUG = Collision when ball hits top of player
 
 # import necessary packages
@@ -172,11 +171,13 @@ class Ball(pg.sprite.Sprite):
                                        "leftup", "rightup"])
             self.direct = direction
             # speed variables
-            self.changex = random.randint(7, 10)
+            self.changex = random.randint(8, 11)
             self.changey = random.randint(3, 6)
         
 def show_start_screen():
     # game start screen
+    pg.mixer.music.load('DoingItRight-DaftPunk.mp3')
+    pg.mixer.music.play(loops=-1)
     DISPLAYSURF.fill(WHITEGREY)
     draw_text(DISPLAYSURF, "PO", 200, (WINDOWWIDTH / 2) - 100, WINDOWHEIGHT / 4, PINK)
     draw_text(DISPLAYSURF, "NG", 200, (WINDOWWIDTH / 2) + 100, WINDOWHEIGHT / 4, BLUE)
@@ -193,24 +194,39 @@ def show_start_screen():
     draw_text(DISPLAYSURF, "Press RETURN to play", 50, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4, GREY)    
     pg.display.update()
     wait_for_key() 
+    pg.mixer.music.fadeout(500)
 
 def show_gameover_screen_pink():
     # gameover screen/continue
+    pg.mixer.music.load('F-ZeroMuteCity.mp3')
+    pg.mixer.music.play(loops=-1)
     DISPLAYSURF.fill(WHITEGREY)
     draw_text(DISPLAYSURF, "PINK WINS!", 200, (WINDOWWIDTH / 2), WINDOWHEIGHT / 4, PINK)
-    draw_text(DISPLAYSURF, "A Joshua Willman Game", 40, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 - 75, GREY)
-    draw_text(DISPLAYSURF, "Thank you for playing!", 50, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4, GREY) 
+    draw_text(DISPLAYSURF, "Thank you for playing!", 80, WINDOWWIDTH / 2, WINDOWHEIGHT / 2 , GREY)
+    draw_text(DISPLAYSURF, "MUSIC:", 50, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 , GREY)
+    draw_text(DISPLAYSURF, "Daft Punk – Doing It Right", 28, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 + 50, GREY) 
+    draw_text(DISPLAYSURF, "Emil Rottmayer – S.O.L.O.", 28, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 + 80, GREY) 
+    draw_text(DISPLAYSURF, "F-Zero – Mute City", 28, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 + 110, GREY) 
+    draw_text(DISPLAYSURF, "A Joshua Willman Game", 40, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 - 75, GREY) 
     pg.display.update()
     wait_for_key()
+    pg.mixer.music.fadeout(500)
 
 def show_gameover_screen_blue():
     # gameover screen/continue
+    pg.mixer.music.load('F-ZeroMuteCity.mp3')
+    pg.mixer.music.play(loops=-1)
     DISPLAYSURF.fill(WHITEGREY)
     draw_text(DISPLAYSURF, "BLUE WINS!", 200, (WINDOWWIDTH / 2), WINDOWHEIGHT / 4, BLUE)
+    draw_text(DISPLAYSURF, "Thank you for playing!", 80, WINDOWWIDTH / 2, WINDOWHEIGHT / 2 , GREY)
+    draw_text(DISPLAYSURF, "MUSIC:", 50, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 , GREY)
+    draw_text(DISPLAYSURF, "Daft Punk – Doing It Right", 28, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 + 50, GREY) 
+    draw_text(DISPLAYSURF, "Emil Rottmayer – S.O.L.O.", 28, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 + 80, GREY) 
+    draw_text(DISPLAYSURF, "F-Zero – Mute City", 28, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 + 110, GREY) 
     draw_text(DISPLAYSURF, "A Joshua Willman Game", 40, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4 - 75, GREY)
-    draw_text(DISPLAYSURF, "Thank you for playing!", 50, WINDOWWIDTH / 2, WINDOWHEIGHT * 3/4, GREY) 
     pg.display.update()
     wait_for_key()
+    pg.mixer.music.fadeout(500)
 
 def wait_for_key():
     # pause for key event
@@ -263,6 +279,9 @@ while running: # main game loop
         pg.time.delay(1500)
 
         show_menu = False
+
+        pg.mixer.music.load('EmilRottmayer-SOLO.mp3')
+        pg.mixer.music.play(loops=-1)
 
         # List that contains all sprites in the game
         active_sprites_list = pg.sprite.Group()
@@ -326,10 +345,12 @@ while running: # main game loop
         ball.changex *= -1.07
 
     # return to menu
-    if ball.pink_score == 2 or ball.blue_score == 2:
-        if ball.pink_score == 2:
+    if ball.pink_score == 10 or ball.blue_score == 10:
+        if ball.pink_score == 10:
+            pg.mixer.music.fadeout(500)
             show_gameover_menu_pink = True
-        elif ball.blue_score == 2:
+        elif ball.blue_score == 10:
+            pg.mixer.music.fadeout(500)
             show_gameover_menu_blue = True
             #show_gameover_screen()
             #show_menu = True
