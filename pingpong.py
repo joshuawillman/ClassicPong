@@ -3,6 +3,10 @@
 # import necessary packages
 import pygame as pg, sys, random
 from pygame import *
+from os import path
+
+# load directories
+sound_dir = path.join(path.dirname(__file__), 'sounds')
 
 WINDOWWIDTH = 1000
 WINDOWHEIGHT = 740 # includes space for scoreboard
@@ -62,7 +66,7 @@ class BluePlayer(pg.sprite.Sprite):
             self.rect.y = WINDOWHEIGHT - self.rect.height
 
 class PinkPlayer(pg.sprite.Sprite):
-    ''' create blue (left) player'''
+    ''' create pink (right) player'''
     def __init__(self, width, height):
         super().__init__()
 
@@ -106,6 +110,7 @@ class Ball(pg.sprite.Sprite):
 
         # draw image
         self.rect = self.image.get_rect()
+
         # spawn location
         self.rect.centerx = WINDOWWIDTH / 2
         self.rect.centery = WINDOWHEIGHT / 2 + 20
@@ -171,12 +176,12 @@ class Ball(pg.sprite.Sprite):
                                        "leftup", "rightup"])
             self.direct = direction
             # speed variables
-            self.changex = random.randint(8, 11)
+            self.changex = random.randint(8, 13)
             self.changey = random.randint(3, 6)
         
 def show_start_screen():
     # game start screen
-    pg.mixer.music.load('DoingItRight-DaftPunk.mp3')
+    pg.mixer.music.load(path.join(sound_dir, 'DoingItRight-DaftPunk.mp3'))
     pg.mixer.music.play(loops=-1)
     DISPLAYSURF.fill(WHITEGREY)
     draw_text(DISPLAYSURF, "PO", 200, (WINDOWWIDTH / 2) - 100, WINDOWHEIGHT / 4, PINK)
@@ -198,7 +203,7 @@ def show_start_screen():
 
 def show_gameover_screen_pink():
     # gameover screen/continue
-    pg.mixer.music.load('F-ZeroMuteCity.mp3')
+    pg.mixer.music.load(path.join(sound_dir, 'F-ZeroMuteCity.mp3'))
     pg.mixer.music.play(loops=-1)
     DISPLAYSURF.fill(WHITEGREY)
     draw_text(DISPLAYSURF, "PINK WINS!", 200, (WINDOWWIDTH / 2), WINDOWHEIGHT / 4, PINK)
@@ -214,7 +219,7 @@ def show_gameover_screen_pink():
 
 def show_gameover_screen_blue():
     # gameover screen/continue
-    pg.mixer.music.load('F-ZeroMuteCity.mp3')
+    pg.mixer.music.load(path.join(sound_dir, 'F-ZeroMuteCity.mp3'))
     pg.mixer.music.play(loops=-1)
     DISPLAYSURF.fill(WHITEGREY)
     draw_text(DISPLAYSURF, "BLUE WINS!", 200, (WINDOWWIDTH / 2), WINDOWHEIGHT / 4, BLUE)
@@ -256,8 +261,8 @@ logo = pg.image.load('logo.png').convert_alpha()
 logo_rect = logo.get_rect(center=(WINDOWWIDTH/2, WINDOWHEIGHT/2 + 20))
 
 # load sounds
-pong_sound = pg.mixer.Sound('beeep.ogg')
-bounce_sound = pg.mixer.Sound('plop.ogg')
+pong_sound = pg.mixer.Sound(path.join(sound_dir, 'beeep.ogg'))
+bounce_sound = pg.mixer.Sound(path.join(sound_dir, 'plop.ogg'))
 
 running = True
 show_menu = True
@@ -280,7 +285,7 @@ while running: # main game loop
 
         show_menu = False
 
-        pg.mixer.music.load('EmilRottmayer-SOLO.mp3')
+        pg.mixer.music.load(path.join(sound_dir, 'EmilRottmayer-SOLO.mp3'))
         pg.mixer.music.play(loops=-1)
 
         # List that contains all sprites in the game
@@ -335,12 +340,14 @@ while running: # main game loop
     # check for collision between blue player and ball
     blue_hit = pg.sprite.collide_rect(ball, blue)
     if blue_hit:
+        ball.rect.left = blue.rect.right - 1
         pong_sound.play()
         ball.changex *= -1.07
 
-    # check for collision between blue player and ball
+    # check for collision between pink player and ball
     pink_hit = pg.sprite.collide_rect(ball, pink)
-    if pink_hit:
+    if pink_hit:      
+        ball.rect.right = pink.rect.left + 1  
         pong_sound.play()
         ball.changex *= -1.07
 
@@ -363,6 +370,8 @@ while running: # main game loop
     pg.draw.line(DISPLAYSURF, GREY, ((WINDOWWIDTH/2) - 2, 50), ((WINDOWWIDTH/2) - 2, 290), 4)
     pg.draw.line(DISPLAYSURF, GREY, ((WINDOWWIDTH/2) - 2, WINDOWHEIGHT - 250), ((WINDOWWIDTH/2) - 2, WINDOWHEIGHT - 10), 4)
     pg.draw.circle(DISPLAYSURF, GREY, [WINDOWWIDTH//2, (WINDOWHEIGHT//2) + 20], 100, 4)
+
+    #pg.draw.line(DISPLAYSURF, GREY, (45, 50), (45, 290), 4)
 
     # Display scoreboard
     pg.draw.rect(DISPLAYSURF, GREY, (0,0,WINDOWWIDTH,40))
